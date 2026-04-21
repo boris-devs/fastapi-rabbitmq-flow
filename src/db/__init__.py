@@ -1,1 +1,1 @@
-from postgres import get_async_postgres_session as get_db
+from .session_postgres import get_async_postgres_session as get_db
