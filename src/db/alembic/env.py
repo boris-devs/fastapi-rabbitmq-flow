@@ -3,7 +3,7 @@ import os
 from src.db.session_postgres import sync_postgres_engine
 os.environ["PGMESSAGES"] = "en_US.UTF-8"
 from alembic import context
-from src.config.settings import settings
+from src.config import settings
 from src.models import users
 
 # this is the Alembic Config object, which provides
