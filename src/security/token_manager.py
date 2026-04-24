@@ -2,7 +2,7 @@ from datetime import timedelta, timezone, datetime
 
 import jwt
 
-from config import settings
+from src.config import settings
 
 
 def _create_token(data: dict, additional_claims: dict, secret: str, expires_delta: timedelta) -> str:
