@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from src.config import settings
+from src.routers import users_router
 app = FastAPI()
 
-@app.get("/")
-def read_root():
-    return {"Hello": settings.POSTGRES_DATABASE_URL}
+
+prefix = "/api"
+app.include_router(router=users_router, prefix=f"{prefix}/users", tags=["users"])
