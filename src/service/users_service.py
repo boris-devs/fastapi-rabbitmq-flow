@@ -1,8 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
+from src.security.passwords import verify_password
+from src.security.token_manager import create_access_token
 from src.repositories.users_repo import UserRepository
-from src.schemas.users import UserCreateRequestSchema, UserLoginSchema
+from src.schemas.users import UserCreateRequestSchema, UserLoginRequestSchema
 from fastapi import status
 
 from src.security.passwords import hash_password
@@ -36,8 +38,17 @@ class UserService:
 			await self.user_repo.db.rollback()
 			raise e
 
-	async def login_user(self, data: UserLoginSchema):
-		user = await self.user_repo.get_user_by_email_and_pswd(data.email, data.password)
+	async def login_user(self, data: UserLoginRequestSchema):
+		user = await self.user_repo.get_user_by_email(data.email)
 		if not user:
 			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
-		return user
+		if not verify_password(data.password, user.password_hash):
+			raise HTTPException(
+				status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password"
+			)
+		access_token = create_access_token(data={"sub": str(user.id)})
+		refresh_token = create_access_token(data={"sub": str(user.id)})
+		return {"access_token": access_token,
+		        "refresh_token": refresh_token,
+		        "token_type": "bearer"
+		        }

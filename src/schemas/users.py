@@ -2,15 +2,24 @@ from pydantic import BaseModel
 
 
 class UserBaseSchema(BaseModel):
-    username: str
-    email: str
+	username: str
+	email: str
+
 
 class UserCreateRequestSchema(UserBaseSchema):
-    password: str
+	password: str
+
 
 class UserCreateResponseSchema(UserBaseSchema):
-    id: int
+	id: int
 
-class UserLoginSchema(BaseModel):
-    email: str
-    password: str
+
+class UserLoginRequestSchema(BaseModel):
+	email: str
+	password: str
+
+
+class UserLoginResponseSchema(BaseModel):
+	access_token: str
+	refresh_token: str
+	token_type: str = "bearer"
