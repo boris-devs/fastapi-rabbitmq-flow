@@ -23,7 +23,7 @@ class UserRepository:
 		await self.db.flush()
 		return new_user
 
-	async def get_user_by_email_and_pswd(self, email: str, password: str) -> Users | None:
-		user = await self.db.execute(select(Users).where(Users.email == email, Users.password_hash == password))
+	async def get_user_by_email(self, email: str) -> Users | None:
+		user = await self.db.execute(select(Users).where(Users.email == email))
 		result = user.scalar_one_or_none()
 		return result
