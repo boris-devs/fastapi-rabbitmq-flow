@@ -1,6 +1,8 @@
 from datetime import timedelta, timezone, datetime
 
 import jwt
+from fastapi import HTTPException
+from jwt import ExpiredSignatureError, InvalidTokenError
 
 from src.config import settings
 
@@ -43,6 +45,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 	return _create_token(data, {"type": "access"}, settings.ACCESS_SECRET_KEY,
 	                     expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
 
+
 def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> str:
 	"""
 	Create a new refresh token for the given data.
@@ -60,3 +63,31 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> 
 	"""
 	return _create_token(data, {"type": "refresh"}, settings.REFRESH_SECRET_KEY,
 	                     expires_delta or timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
+
+
+def decode_access_token(token: str):
+	try:
+		payload = jwt.decode(token, settings.ACCESS_SECRET_KEY, algorithms=[settings.ALGORITHM])
+		if payload.get("type") != "access":
+			raise HTTPException(status_code=401, detail="Invalid token type")
+		return payload
+	except ExpiredSignatureError:
+		raise HTTPException(status_code=401, detail="Token has expired")
+	except InvalidTokenError:
+		raise HTTPException(status_code=401, detail="Invalid token")
+	except Exception:
+		raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+
+def decode_refresh_token(token: str):
+	try:
+		payload = jwt.decode(token, settings.REFRESH_SECRET_KEY, algorithms=[settings.ALGORITHM])
+		if payload.get("type") != "refresh":
+			raise HTTPException(status_code=401, detail="Invalid token type")
+		return payload
+	except ExpiredSignatureError:
+		raise HTTPException(status_code=401, detail="Token has expired")
+	except InvalidTokenError:
+		raise HTTPException(status_code=401, detail="Invalid token")
+	except Exception:
+		raise HTTPException(status_code=401, detail="Could not validate credentials")
