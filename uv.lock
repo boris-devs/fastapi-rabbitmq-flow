@@ -350,6 +350,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "psycopg2" },
     { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "pyjwt" },
     { name = "sqlalchemy" },
 ]
@@ -363,6 +364,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.136.0" },
     { name = "psycopg2", specifier = ">=2.9.12" },
     { name = "pydantic", specifier = ">=2.13.2" },
+    { name = "pydantic-settings", specifier = ">=2.13.1" },
     { name = "pyjwt", specifier = ">=2.12.1" },
     { name = "sqlalchemy", specifier = ">=2.0.49" },
 ]
