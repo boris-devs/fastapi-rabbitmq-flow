@@ -1,6 +1,8 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
+from broker.constants import USER_REGISTRATION_QUEUE
+from broker.rabbitmq_manager import RabbitMQManagerInterface
 from src.security.passwords import verify_password
 from src.security.token_manager import create_access_token
 from src.repositories.users_repo import UserRepository
@@ -11,8 +13,9 @@ from src.security.passwords import hash_password
 
 
 class UserService:
-	def __init__(self, user_repo: UserRepository):
+	def __init__(self, user_repo: UserRepository, rmq_manager: RabbitMQManagerInterface):
 		self.user_repo = user_repo
+		self.rmq_manager = rmq_manager
 
 	async def register_new_user(self, data: UserCreateRequestSchema):
 		"""
@@ -43,6 +46,9 @@ class UserService:
 			                                       email=data.email,
 			                                       password_hash=hash_password(data.password))
 			await self.user_repo.db.commit()
+			#message to broker with new user data
+			user_data = {"user_id": new_user.id, "username": new_user.username, "email": new_user.email}
+			await self.rmq_manager.publish(USER_REGISTRATION_QUEUE, message=user_data)
 			return new_user
 		except IntegrityError:
 			await self.user_repo.db.rollback()
