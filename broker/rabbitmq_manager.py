@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 
 import aio_pika
@@ -33,13 +34,16 @@ class RabbitMQManagerInterface(ABC):
 		pass
 
 	@abstractmethod
-	async def publish(self, queue_name: str, message: str):
+	async def publish(self, queue_name: str, message: dict):
 		"""
-		Publishes a message to the specified queue asynchronously.
+		Publishes a message to the specified queue.
 
-		The `publish` method is an abstract method that must be implemented
-		in subclasses. It is used to send a message to a given queue. This is
-		an asynchronous operation.
+		This method serves as an abstract definition for publishing a message to a
+		queue. The implementation of this method should handle the specifics of message
+		publishing, such as serialization, queue communication, and error handling.
+
+		:param queue_name: Name of the target queue to which the message should be sent.
+		:param message: The content of the message to be published, represented as a dictionary.
 		"""
 		pass
 
@@ -97,24 +101,25 @@ class RabbitMQManager(RabbitMQManagerInterface):
 		if self._connection:
 			await self._connection.close()
 
-	async def publish(self, queue_name: str, message: str):
+	async def publish(self, queue_name: str, message: dict):
 		"""
-		Publishes a message to the specified queue in a RabbitMQ broker.
+		Publishes a message to the specified RabbitMQ queue asynchronously.
 
-		This asynchronous method sends a given message to a queue identified
-		by its name using the default exchange of the RabbitMQ channel. It
-		requires an established connection to RabbitMQ. If the connection
-		is not established, an error is raised.
+		This method takes a queue name and a message, serializes the message into
+		JSON format, and publishes it to the RabbitMQ queue via the default exchange.
+		It ensures that a RabbitMQ connection is established before publishing.
 
-		:param queue_name: The name of the queue to which the message will
-		                   be published.
+		:param queue_name: The name of the target RabbitMQ queue to publish the message to.
 		:type queue_name: str
-		:param message: The message content to be sent to the queue.
-		:type message: str
+		:param message: A dictionary containing the message content to be published.
+		:type message: dict
+		:return: None
+		:raises RuntimeError: If the RabbitMQ connection is not established.
 		"""
 		if not self._channel:
 			raise RuntimeError("RabbitMQ connection is not established")
-		await self._channel.default_exchange.publish(message, routing_key=queue_name)
+		body = json.dumps(message).encode()
+		await self._channel.default_exchange.publish(aio_pika.Message(body=body), routing_key=queue_name)
 
 	async def consume(self, queue_name: str):
 		"""
