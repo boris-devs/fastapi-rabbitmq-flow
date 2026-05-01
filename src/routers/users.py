@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.broker.rabbitmq_manager import RabbitMQManagerInterface
 from src.models.users import Users
 from src.security.utils import get_current_user
 from src.db import get_db
@@ -8,13 +9,13 @@ from src.repositories.users_repo import UserRepository
 from src.schemas.users import (UserCreateRequestSchema, UserCreateResponseSchema, UserLoginRequestSchema,
                                UserLoginResponseSchema)
 from src.service.users_service import UserService
-
+from src.broker.rabbitmq_manager import get_rmq_manager
 router = APIRouter()
 
 
-def user_service(db: AsyncSession = Depends(get_db)):
+def user_service(db: AsyncSession = Depends(get_db), rmq_manager: RabbitMQManagerInterface = Depends(get_rmq_manager)):
 	user_repo = UserRepository(db)
-	service = UserService(user_repo)
+	service = UserService(user_repo, rmq_manager)
 	return service
 
 
