@@ -1,7 +1,10 @@
 import json
 from abc import ABC, abstractmethod
+from fastapi import Request
 
 import aio_pika
+
+from src.broker.constants import USER_REGISTRATION_QUEUE
 
 
 class RabbitMQManagerInterface(ABC):
@@ -67,6 +70,7 @@ class RabbitMQManager(RabbitMQManagerInterface):
 	:ivar amqp_url: The AMQP URL used for connecting to the RabbitMQ server.
 	:type amqp_url: str
 	"""
+
 	def __init__(self, amqp_url: str):
 		self.amqp_url = amqp_url
 		self._connection = None
@@ -86,7 +90,7 @@ class RabbitMQManager(RabbitMQManagerInterface):
 		"""
 		self._connection = await aio_pika.connect_robust(self.amqp_url)
 		self._channel = await self._connection.channel()
-		await self._channel.declare_queue("user_registrations_queue", durable=True)
+		await self._channel.declare_queue(USER_REGISTRATION_QUEUE, durable=True)
 
 	async def close(self):
 		"""
@@ -139,3 +143,21 @@ class RabbitMQManager(RabbitMQManagerInterface):
 			async for message in queue_iter:
 				async with message.process():
 					print(message.body)
+
+
+def get_rmq_manager(request: Request) -> RabbitMQManagerInterface:
+	"""
+	Retrieve the RabbitMQ manager instance from the application state.
+
+	This function extracts the RabbitMQ manager instance from the application
+	state associated with the incoming request. It serves as an accessor for
+	the RabbitMQManagerInterface implementation.
+
+	:param request: The HTTP request object containing the application state.
+	:type request: Request
+	:return: An instance of RabbitMQManagerInterface extracted from the
+	    application's state.
+	:rtype: RabbitMQManagerInterface
+	"""
+	rmq_manager = request.app.state.rmq_manager
+	return rmq_manager
