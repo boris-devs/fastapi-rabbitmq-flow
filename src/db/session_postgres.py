@@ -7,7 +7,7 @@ from src.config import settings
 postgres_url = settings.postgres_database_url
 ASYNC_POSTGRES_URL = postgres_url.replace("postgresql", "postgresql+asyncpg")
 
-async_postgres_engine = create_async_engine(ASYNC_POSTGRES_URL, echo=True)
+async_postgres_engine = create_async_engine(ASYNC_POSTGRES_URL, echo=False)
 
 AsyncSessionLocal = sessionmaker(  # NOQA
     bind=async_postgres_engine,
