@@ -2,18 +2,18 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from broker.rabbitmq_manager import RabbitMQManager
+from src.broker.rabbitmq_manager import RabbitMQManager
 from src.config import settings
 from src.routers import users_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-	pika_connection = RabbitMQManager(settings.RABBITMQ_AMQP_URL)
-	await pika_connection.connect()
-	app.state.rmq = pika_connection
+	rmq_manager = RabbitMQManager(settings.RABBITMQ_AMQP_URL)
+	await rmq_manager.connect()
+	app.state.rmq_manager = rmq_manager
 	yield
-	await pika_connection.close()
+	await rmq_manager.close()
 
 
 app = FastAPI(lifespan=lifespan)
