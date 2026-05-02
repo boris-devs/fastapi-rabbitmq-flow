@@ -11,6 +11,23 @@ class EmailSenderInterface(ABC):
 
 
 class EmailSender(EmailSenderInterface):
+	"""
+	Handles sending of emails through an SMTP server.
+
+	This class facilitates sending emails by using an SMTP server. It supports
+	secure email delivery with TLS encryption. Primarily, it provides functionality
+	to send pre-formatted registration emails, ensuring a streamlined registration
+	process for users.
+
+	:ivar _hostname: The hostname of the SMTP server, like 'smtp.gmail.com'.
+	:type _hostname: Str
+	:ivar _port: The port to be used for connecting to the SMTP server.
+	:type _port: Int
+	:ivar _username: The username for authenticating with the SMTP server.
+	:type _username: Str
+	:ivar _password: The password for authenticating with the SMTP server.
+	:type _password: Str
+	"""
 	def __init__(self, hostname: str, port: int, username: str, password: str):
 		self._hostname = hostname
 		self._port = port

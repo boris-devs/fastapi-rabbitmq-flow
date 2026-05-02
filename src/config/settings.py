@@ -16,6 +16,11 @@ class Settings(BaseSettings):
 
 	RABBITMQ_AMQP_URL: str = "amqp://guest:guest@localhost:5672/"
 
+	GMAIL_EMAIL: str = ""
+	GMAIL_PASSWORD: str = ""
+	EMAIL_HOSTNAME: str = "smtp.gmail.com"
+	EMAIL_PORT: int = 465
+
 	model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 	@property
