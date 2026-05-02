@@ -1,9 +1,16 @@
+from abc import ABC, abstractmethod
 from email.message import EmailMessage
 
 import aiosmtplib
 
 
-class EmailSender:
+class EmailSenderInterface(ABC):
+	@abstractmethod
+	def send_registration_email(self, to: str, content: str):
+		pass
+
+
+class EmailSender(EmailSenderInterface):
 	def __init__(self, hostname: str, port: int, username: str, password: str):
 		self._hostname = hostname
 		self._port = port
