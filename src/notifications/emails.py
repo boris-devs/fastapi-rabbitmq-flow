@@ -6,7 +6,7 @@ import aiosmtplib
 
 class EmailSenderInterface(ABC):
 	@abstractmethod
-	def send_registration_email(self, to: str, content: str):
+	async def send_registration_email(self, to: str, content: str):
 		pass
 
 
