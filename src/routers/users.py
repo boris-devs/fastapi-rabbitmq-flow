@@ -1,0 +1,34 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.broker.rabbitmq_manager import RabbitMQManagerInterface
+from src.models.users import Users
+from src.security.utils import get_current_user
+from src.db import get_db
+from src.repositories.users_repo import UserRepository
+from src.schemas.users import (UserCreateRequestSchema, UserCreateResponseSchema, UserLoginRequestSchema,
+                               UserLoginResponseSchema)
+from src.service.users_service import UserService
+from src.broker.rabbitmq_manager import get_rmq_manager
+router = APIRouter()
+
+
+def user_service(db: AsyncSession = Depends(get_db), rmq_manager: RabbitMQManagerInterface = Depends(get_rmq_manager)):
+	user_repo = UserRepository(db)
+	service = UserService(user_repo, rmq_manager)
+	return service
+
+
+@router.post("/register/", response_model=UserCreateResponseSchema)
+async def register_user(user_data: UserCreateRequestSchema, service: UserService = Depends(user_service)):
+	return await service.register_new_user(user_data)
+
+
+@router.post("/login/", response_model=UserLoginResponseSchema)
+async def login(user_data: UserLoginRequestSchema, service: UserService = Depends(user_service)):
+	return await service.login_user(user_data)
+
+
+@router.get("/me/")
+async def get_me(current_user: Users = Depends(get_current_user)):
+	return current_user

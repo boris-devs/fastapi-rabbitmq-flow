@@ -1,0 +1,1 @@
+USER_REGISTRATION_QUEUE = "users_registrations_queue"
