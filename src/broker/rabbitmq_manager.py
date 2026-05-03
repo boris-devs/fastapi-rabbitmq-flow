@@ -1,10 +1,12 @@
 import json
 from abc import ABC, abstractmethod
+from typing import Callable
+
 from fastapi import Request
 
 import aio_pika
 
-from src.broker.constants import USER_REGISTRATION_QUEUE
+from .constants import USER_REGISTRATION_QUEUE
 
 
 class RabbitMQManagerInterface(ABC):
@@ -51,7 +53,7 @@ class RabbitMQManagerInterface(ABC):
 		pass
 
 	@abstractmethod
-	async def consume(self, queue_name: str):
+	async def consume(self, queue_name: str, callback: Callable):
 		"""
 		An abstract method to consume messages from a specified queue asynchronously.
 		"""
@@ -125,7 +127,7 @@ class RabbitMQManager(RabbitMQManagerInterface):
 		body = json.dumps(message).encode()
 		await self._channel.default_exchange.publish(aio_pika.Message(body=body), routing_key=queue_name)
 
-	async def consume(self, queue_name: str):
+	async def consume(self, queue_name: str, callback: Callable):
 		"""
 		Consumes messages from a specified asynchronous queue and processes each message.
 
@@ -134,15 +136,16 @@ class RabbitMQManager(RabbitMQManagerInterface):
 		the message lifecycle, ensuring that the message is acknowledged after
 		successful processing.
 
+		:param callback:
 		:param queue_name: The name of the queue from which messages are consumed.
 		:type queue_name: str
 		"""
-		queue = await self._channel.declare_queue(queue_name)
+		queue = await self._channel.declare_queue(queue_name, durable=True)
 
 		async with queue.iterator() as queue_iter:
 			async for message in queue_iter:
 				async with message.process():
-					print(message.body)
+					await callback(message.body)
 
 
 def get_rmq_manager(request: Request) -> RabbitMQManagerInterface:
