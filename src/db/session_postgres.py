@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
 
 from src.config import settings
@@ -9,11 +9,10 @@ ASYNC_POSTGRES_URL = postgres_url.replace("postgresql", "postgresql+asyncpg")
 
 async_postgres_engine = create_async_engine(ASYNC_POSTGRES_URL, echo=False)
 
-AsyncSessionLocal = sessionmaker(  # NOQA
+AsyncSessionLocal = async_sessionmaker(  # NOQA
     bind=async_postgres_engine,
     expire_on_commit=False,
     autoflush=False,
-    class_=AsyncSession
 )
 
 sync_postgres_engine = create_engine(postgres_url, echo=False)
