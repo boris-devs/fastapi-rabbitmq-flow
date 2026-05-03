@@ -18,8 +18,8 @@ class Settings(BaseSettings):
 
 	GMAIL_EMAIL: str = ""
 	GMAIL_PASSWORD: str = ""
-	EMAIL_HOSTNAME: str = "smtp.gmail.com"
-	EMAIL_PORT: int = 465
+	GMAIL_HOSTNAME: str = "smtp.gmail.com"
+	GMAIL_PORT: int = 465
 
 	model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

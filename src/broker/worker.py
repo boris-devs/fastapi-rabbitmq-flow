@@ -30,8 +30,8 @@ class EmailSenderWorker:
 if __name__ == "__main__":
 	print("Starting worker")
 	rmq = RabbitMQManager(amqp_url)
-	email_sender = EmailSender(hostname=settings.EMAIL_HOSTNAME,
-	                           port=settings.EMAIL_PORT,
+	email_sender = EmailSender(hostname=settings.GMAIL_HOSTNAME,
+	                           port=settings.GMAIL_PORT,
 	                           username=settings.GMAIL_EMAIL,
 	                           password=settings.GMAIL_PASSWORD)
 
