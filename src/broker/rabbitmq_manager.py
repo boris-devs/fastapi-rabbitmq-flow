@@ -96,16 +96,20 @@ class RabbitMQManager(RabbitMQManagerInterface):
 
 	async def close(self):
 		"""
-		Closes the existing connection if it is active.
+		Closes the existing connection and channel if it is active.
 
-		This coroutine checks for the presence of an active connection and ensures
+		This coroutine checks for the presence of an active connection and channel and ensures
 		that it is properly closed. If no connection exists, this operation does
 		nothing.
 
 		:return: None
 		"""
-		if self._connection:
-			await self._connection.close()
+		try:
+			if self._channel and not self._channel.is_closed:
+				await self._channel.close()
+		finally:
+			if self._connection and not self._connection.is_closed:
+				await self._connection.close()
 
 	async def publish(self, queue_name: str, message: dict):
 		"""
