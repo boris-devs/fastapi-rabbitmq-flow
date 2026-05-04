@@ -27,7 +27,7 @@ class EmailSenderWorker:
 		await self.rmq.consume(USER_REGISTRATION_QUEUE, self.processing_message)
 
 
-if __name__ == "__main__":
+async def start_worker():
 	print("Starting worker")
 	rmq = RabbitMQManager(amqp_url)
 	email_sender = EmailSender(hostname=settings.GMAIL_HOSTNAME,
@@ -38,6 +38,12 @@ if __name__ == "__main__":
 	notification_worker = EmailSenderWorker(rmq, email_sender)
 
 	try:
-		asyncio.run(notification_worker.send_email())
+		await notification_worker.send_email()
 	except KeyboardInterrupt:
 		print("Shutting down worker")
+	finally:
+		await rmq.close()
+
+
+if __name__ == "__main__":
+	asyncio.run(start_worker())
