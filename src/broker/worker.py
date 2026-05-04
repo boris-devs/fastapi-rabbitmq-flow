@@ -39,11 +39,12 @@ async def start_worker():
 
 	try:
 		await notification_worker.send_email()
-	except KeyboardInterrupt:
-		print("Shutting down worker")
 	finally:
 		await rmq.close()
 
 
 if __name__ == "__main__":
-	asyncio.run(start_worker())
+	try:
+		asyncio.run(start_worker())
+	except KeyboardInterrupt:
+		print("Shutting down worker")
