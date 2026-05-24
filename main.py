@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from src.broker.rabbitmq_manager import RabbitMQManager
 from src.config import settings
-from src.routers import users_router
+from src.routers import users_router, healthcheck_router
 
 
 @asynccontextmanager
@@ -20,3 +20,4 @@ app = FastAPI(lifespan=lifespan)
 
 prefix = "/api"
 app.include_router(router=users_router, prefix=f"{prefix}/users", tags=["users"])
+app.include_router(router=healthcheck_router, prefix=f"/healthcheck", tags=["healthcheck"])
