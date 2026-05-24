@@ -1,7 +1,7 @@
 services:
   rabbitmq:
     image: rabbitmq:4.0-management
-    container_name: rabbitmq
+    container_name: rabbitmq_flow
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -10,6 +10,82 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: always
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_running" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq_worker:
+    container_name: rabbitmq_worker_flow
+    build: .
+    command: uv run python -m src.broker.worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    restart: always
+
+  db:
+    image: postgres:16-alpine
+    container_name: flow_db
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flow_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/healthcheck/app" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flow_migrations
+    env_file:
+      - .env
+    command: uv run alembic upgrade head
+    volumes:
+      - .:/app
+      - /app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
 
 volumes:
   rabbitmq_data:
+  postgres_data:
