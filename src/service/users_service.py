@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
-from security.token_manager import create_refresh_token
+from src.security.token_manager import create_refresh_token
 from src.broker.constants import USER_REGISTRATION_QUEUE
 from src.broker.rabbitmq_manager import RabbitMQManagerInterface
 from src.security.passwords import verify_password
