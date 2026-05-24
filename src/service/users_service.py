@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
+from security.token_manager import create_refresh_token
 from src.broker.constants import USER_REGISTRATION_QUEUE
 from src.broker.rabbitmq_manager import RabbitMQManagerInterface
 from src.security.passwords import verify_password
@@ -46,7 +47,7 @@ class UserService:
 			                                       email=data.email,
 			                                       password_hash=hash_password(data.password))
 			await self.user_repo.db.commit()
-			#message to broker with new user data
+			# message to broker with new user data
 			user_data = {"user_id": new_user.id, "username": new_user.username, "email": new_user.email}
 			await self.rmq_manager.publish(USER_REGISTRATION_QUEUE, message=user_data)
 			return new_user
@@ -58,44 +59,20 @@ class UserService:
 			await self.user_repo.db.rollback()
 			raise e
 
-	async def login_user(self, data: UserLoginRequestSchema):
-		"""
-		Authenticates the user using the provided email and password and generates
-		access and refresh tokens upon successful login. This method validates
-		the user's credentials, checks if the email exists, and ensures the
-		provided password matches the stored password hash. Upon successful
-		validation, it returns a dictionary containing the access token,
-		refresh token, and token type.
-
-		:param data: An instance of "UserLoginRequestSchema" containing the
-		    user's login credentials, including email and password.
-		:type data: UserLoginRequestSchema
-
-		:return: A dictionary containing the generated access token, refresh
-		    token, and token type.
-		:rtype: dict
-
-		:raises HTTPException: If the user does not exist or the provided email
-		    and password do not match, raises an HTTP 401 error indicating
-		    unauthorized access.
-
-		"""
-		user = await self.user_repo.get_user_by_email(data.email)
-		if not user:
-			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
-		if not verify_password(data.password, user.password_hash):
-			raise HTTPException(
-				status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password"
-			)
-		access_token = create_access_token(data={"sub": str(user.id)})
-		refresh_token = create_access_token(data={"sub": str(user.id)})
-		return {"access_token": access_token,
-		        "refresh_token": refresh_token,
-		        "token_type": "bearer"
-		        }
-
 	async def user_profile(self, user_id: int):
 		user = await self.user_repo.get_user_by_id(user_id)
 		if not user:
 			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 		return user
+
+	async def login_user(self, data: UserLoginRequestSchema):
+		user = await self.user_repo.get_user_by_email(data.email)
+		if not user:
+			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+		if not verify_password(data.password, user.password_hash):
+			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+		access_token = create_access_token(data={"sub": str(user.id)})
+		refresh_token = create_refresh_token(data={"sub": str(user.id)})
+		return {"access_token": access_token,
+		        "refresh_token": refresh_token,
+		        "token_type": "bearer"}
