@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 	ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 	REFRESH_TOKEN_EXPIRE_DAYS: int = 60 * 24 * 7
 
-	RABBITMQ_AMQP_URL: str = "amqp://guest:guest@localhost:5672/"
+	RABBITMQ_AMQP_URL: str = "amqp://user:password@rabbitmq:5672/"
 
 	GMAIL_EMAIL: str = ""
 	GMAIL_PASSWORD: str = ""

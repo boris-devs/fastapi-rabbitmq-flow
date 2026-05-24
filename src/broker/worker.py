@@ -1,6 +1,6 @@
 import asyncio
 import json
-
+from loguru import logger
 from src.notifications.emails import EmailSenderInterface, EmailSender
 from src.config import settings
 from .constants import USER_REGISTRATION_QUEUE
@@ -28,7 +28,7 @@ class EmailSenderWorker:
 
 
 async def start_worker():
-	print("Starting worker")
+	logger.info("Starting worker")
 	rmq = RabbitMQManager(amqp_url)
 	email_sender = EmailSender(hostname=settings.GMAIL_HOSTNAME,
 	                           port=settings.GMAIL_PORT,
@@ -46,5 +46,5 @@ async def start_worker():
 if __name__ == "__main__":
 	try:
 		asyncio.run(start_worker())
-	except KeyboardInterrupt:
-		print("Shutting down worker")
+	except KeyboardInterrupt as e:
+		logger.exception(f"Worker stopped {e}")
