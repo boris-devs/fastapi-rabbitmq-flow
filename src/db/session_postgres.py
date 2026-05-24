@@ -9,13 +9,14 @@ ASYNC_POSTGRES_URL = postgres_url.replace("postgresql", "postgresql+asyncpg")
 async_postgres_engine = create_async_engine(ASYNC_POSTGRES_URL, echo=False)
 
 AsyncSessionLocal = async_sessionmaker(  # NOQA
-    bind=async_postgres_engine,
-    expire_on_commit=False,
-    autoflush=False,
+	bind=async_postgres_engine,
+	expire_on_commit=False,
+	autoflush=False,
 )
 
 sync_postgres_engine = create_engine(postgres_url, echo=False)
 
+
 async def get_async_postgres_session():
-    async with AsyncSessionLocal() as session:
-        yield session
+	async with AsyncSessionLocal() as session:
+		yield session
